@@ -1,0 +1,12 @@
+{
+  "name": "purescript-rnx-fbsdk",
+  "version": "1.0.0",
+  "description": "Purescript wrapper for react-native-fbsdk",
+  "main": "index.js",
+  "repository": "atomicits/purescript-rnx-fbsdk",
+  "author": "Vishnu Prasad <vishnu@atomicits.com>",
+  "license": "MIT",
+  "dependencies": {
+    "react-native-fbsdk": "^0.5.0"
+  }
+}
