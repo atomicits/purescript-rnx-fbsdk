@@ -11,7 +11,8 @@ import React (ReactClass, ReactElement, createElement)
 import React.DOM.Props (unsafeMkProps, unsafeFromPropsArray, Props)
 
 
-foreign import _getAccessToken :: forall e scallback ecallback. scallback
+foreign import _getAccessToken :: forall e scallback ecallback. Array String
+                               -> scallback
                                -> ecallback
                                -> Eff e Unit
 
@@ -28,12 +29,12 @@ type LoginResult = { isCancelled :: Boolean
                    , declinedPermissions :: Array String
                    }
 
-_getAccessToken' :: forall e res. Aff e res
-_getAccessToken' = makeAff (\error success -> _getAccessToken success error)
+_getAccessToken' :: forall e res. Array String -> Aff e res
+_getAccessToken' permissions  = makeAff (\error success -> _getAccessToken permissions success error)
 
 
-getAccessToken :: forall e res. Aff (console :: CONSOLE | e) (Either Error res)
-getAccessToken = attempt $ _getAccessToken'
+getAccessToken :: forall e res. Array String -> Aff (console :: CONSOLE | e) (Either Error res)
+getAccessToken permissions = attempt $ _getAccessToken' permissions
 
 
 

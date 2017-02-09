@@ -3,70 +3,74 @@
 
 var FBSDK = require('react-native-fbsdk');
 
-exports._getAccessToken = function(callback) {
-    return function(){
-        console.log("hi");
-        FBSDK.LoginManager.logInWithReadPermissions(['public_profile']).then(
-            //console.log("inside the promise");
-            function(result) {
-                console.log("insode result function");
-                if (result.isCancelled) {
-                    console.log('Facebook Login cancelled');
-                } else {
-                    console.log("not cancelled");
-                    FBSDK.AccessToken.getCurrentAccessToken().then(
-                        function(accessToken) {
-                            console.log(accessToken);
-                            callback(accessToken)();
+exports._getAccessToken = function(permissionList){
+    return function(success_callback){
+        return function(error_callback) {
+            return function(){
+                FBSDK.LoginManager.logInWithReadPermissions(permissionList).then(
+                    function(result) {
+                        if (result.isCancelled) {
+                            error_callback({name: "User Cancelled", message : "user callcelled the request"})();
+                        } else {
+                            FBSDK.AccessToken.getCurrentAccessToken().then(
+                                function(accessToken) {
+                                    success_callback(accessToken)();
+                                },function(error){
+                                    error_callback(error)();
+                                }
+                            );
                         }
-                    );
-                }
-            },
-            function(error) {
-                console.warn('Login fail with error: ' + error);
-            }
-        );
+                    },
+                    function(error) {
+                        error_callback(error)();
+                    }
+                );
+            };
+        };
     };
 };
 
 
 
+
+
 exports._getUserDetails = function(token){
     return function(requestParams) {
-        return function(callback) {
-            return function(){
-                var responseCallback = function(error, result) {
-                    if(error){
-                        console.log(error);
-                    }else{
-                        console.log(result);
-                        var data = {
-                            uid: result.id,
-                            email: result.email,
-                            date_of_birth: result.birthday,
-                            name: result.name,
-                            location: result.hometown.name,
-                            gender: result.gender
-                        };
-                        callback(data)();
-                    }
-                };
+        return function(success_callback) {
+            return function(error_callback){
+                return function(){
+                    var responseCallback = function(error, result) {
+                        if(error){
+                            error_callback(error);
+                        }else{
+                            var data = {
+                                uid: result.id,
+                                email: result.email,
+                                date_of_birth: result.birthday,
+                                name: result.name,
+                                location: result.hometown ? result.hometown.name : "",
+                                gender: result.gender
+                            };
+                            success_callback(data)();
+                        }
+                    };
 
-                var profileRequestParams = {
-                    fields : {
-                        string : requestParams
-                    }
-                };
+                    var profileRequestParams = {
+                        fields : {
+                            string : requestParams
+                        }
+                    };
 
-                var profileRequestConfig = {
-                    httpMethod: 'GET',
-                    version: 'v2.6',
-                    parameters: profileRequestParams,
-                    accessToken: token
-                };
+                    var profileRequestConfig = {
+                        httpMethod: 'GET',
+                        version: 'v2.6',
+                        parameters: profileRequestParams,
+                        accessToken: token
+                    };
 
-                var profileRequest = new FBSDK.GraphRequest('/me', profileRequestConfig, responseCallback);
-                return new FBSDK.GraphRequestManager().addRequest(profileRequest).start();
+                    var profileRequest = new FBSDK.GraphRequest('/me', profileRequestConfig, responseCallback);
+                    return new FBSDK.GraphRequestManager().addRequest(profileRequest).start();
+                };
             };
         };
     };
