@@ -41,7 +41,7 @@ exports._getUserDetails = function(token){
                 return function(){
                     var responseCallback = function(error, result) {
                         if(error){
-                            error_callback(error);
+                            error_callback(error)();
                         }else{
                             var data = {
                                 uid: result.id,
@@ -77,3 +77,38 @@ exports._getUserDetails = function(token){
 };
 
 exports.loginButtonClass = FBSDK.LoginButton;
+
+
+exports._graphRequest = function(token){
+    return function(path){
+        return function(params){
+            return function(success_callback){
+                return function(error_callback){
+                    return function(){
+                        var responseCallback = function(error, result) {
+                            if(error){
+                                error_callback(error)();
+                            }else{
+                                success_callback(result)();
+                            }
+                        };
+                        var requestParams = {
+                            fields : {
+                                string : params
+                            }
+                        };
+
+                        var requestConfig = {
+                            httpMethod: 'GET',
+                            version: 'v2.6',
+                            parameters: requestParams,
+                            accessToken: token
+                        };
+                        var request = new FBSDK.GraphRequest(path, requestConfig, responseCallback);
+                        return new FBSDK.GraphRequestManager().addRequest(request).start();
+                    };
+                };
+            };
+        };
+    };
+};

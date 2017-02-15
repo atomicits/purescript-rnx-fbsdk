@@ -1,6 +1,5 @@
 module RNX.FBSDK where
 
-
 import Prelude
 import Control.Monad.Aff (Aff, attempt, makeAff)
 import Control.Monad.Aff.Console (CONSOLE)
@@ -10,13 +9,19 @@ import Data.Either (Either)
 import React (ReactClass, ReactElement, createElement)
 import React.DOM.Props (unsafeMkProps, unsafeFromPropsArray, Props)
 
-
 foreign import _getAccessToken :: forall e scallback ecallback. Array String
                                -> scallback
                                -> ecallback
                                -> Eff e Unit
 
 foreign import _getUserDetails :: forall e scallback ecallback. String
+                               -> String
+                               -> scallback
+                               -> ecallback
+                               -> Eff e Unit
+
+foreign import _graphRequest :: forall e scallback ecallback. String
+                               -> String
                                -> String
                                -> scallback
                                -> ecallback
@@ -47,6 +52,18 @@ getUserDetails :: forall e res. String
                -> String
                -> Aff (console :: CONSOLE | e) (Either Error res)
 getUserDetails token accessParams = attempt $ _getUserDetails' token accessParams
+
+
+_graphRequest' :: forall e res. String -> String -> String -> Aff e  res
+_graphRequest' token path accessParams =
+  makeAff (\error success -> _graphRequest token path accessParams success error)
+
+
+graphRequest :: forall e res. String
+               -> String
+               -> String
+               -> Aff (console :: CONSOLE | e) (Either Error res)
+graphRequest token path accessParams = attempt $ _graphRequest' token path accessParams
 
 
 
